@@ -12,19 +12,59 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch and summarize public OpenAPI spec
+      - name: Fetch public API metadata and funded bounty details
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location \
             https://thejobcafe.com/api/public/openapi.json -o /tmp/openapi.json
+          curl --fail --silent --show-error --location \
+            'https://thejobcafe.com/api/public/bounties?status=open&min_price_cents=1000&limit=50' -o /tmp/bounties.json
           python - <<'PY'
           import json
-          p='/tmp/openapi.json'
-          data=json.load(open(p))
-          print('TITLE:', data.get('info',{}).get('title'))
-          print('VERSION:', data.get('info',{}).get('version'))
+
+          spec=json.load(open('/tmp/openapi.json'))
+          bounties=json.load(open('/tmp/bounties.json'))
+
+          print('TITLE:', spec.get('info',{}).get('title'))
+          print('VERSION:', spec.get('info',{}).get('version'))
           print('PATHS:')
-          for path, methods in data.get('paths',{}).items():
+          for path, methods in spec.get('paths',{}).items():
               print(path, ','.join(k.upper() for k in methods if k.lower() in {'get','post','put','patch','delete'}))
+
+          def resolve(schema):
+              if not isinstance(schema, dict): return schema
+              if '$ref' in schema:
+                  node=spec
+                  for part in schema['$ref'].lstrip('#/').split('/'):
+                      node=node[part]
+                  return resolve(node)
+              out={}
+              for k,v in schema.items():
+                  if k in {'properties','items','required','type','enum','description'}:
+                      if isinstance(v,dict): out[k]={kk:resolve(vv) for kk,vv in v.items()}
+                      elif isinstance(v,list): out[k]=[resolve(x) for x in v]
+                      else: out[k]=v
+              return out
+
+          print('\nPOST SCHEMAS:')
+          for path in ['/api/public/agent-keys/register','/api/public/claims','/api/public/claims/{id}/proof']:
+              op=spec['paths'][path]['post']
+              schema=op.get('requestBody',{}).get('content',{}).get('application/json',{}).get('schema',{})
+              print('\n', path)
+              print(json.dumps(resolve(schema), indent=2))
+
+          print('\nOPEN BOUNTIES:')
+          items=bounties.get('bounties', bounties if isinstance(bounties,list) else [])
+          for b in items:
+              print(json.dumps({
+                  'id': b.get('id') or b.get('bounty_id'),
+                  'slug': b.get('slug'),
+                  'title': b.get('title'),
+                  'price_cents': b.get('price_cents') or b.get('price'),
+                  'status': b.get('status'),
+                  'funding': b.get('funding'),
+                  'acceptance_criteria': b.get('acceptance_criteria'),
+                  'proof_required': b.get('proof_required') or b.get('required_proof')
+              }, ensure_ascii=False))
           PY
