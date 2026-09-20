@@ -1,0 +1,71 @@
+name: Claim a discovery
+description: Submit the first complete, verifiable contribution for review.
+title: "[CLAIM] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Claim Zero is a public alpha. Do not submit confidential, personal, illegally obtained, hacked, leaked, medical, financial, or trade-secret information. Submission does not create ownership, equity, royalties, or guaranteed payment.
+
+  - type: input
+    id: claim
+    attributes:
+      label: What exactly are you claiming?
+      description: Write one falsifiable sentence. State what is new, under-recognised, or commercially interesting.
+      placeholder: "Example: Maker X produces Y, currently sold only locally, with evidence of demand outside its present market."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Claim type
+      options:
+        - Product
+        - Creator
+        - Demand signal
+        - Place / experience
+        - Business opportunity
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Provide public links, citations, photos you have the right to share, or primary-source references sufficient for another person to verify the claim.
+      placeholder: "Links and a short explanation of what each proves."
+    validations:
+      required: true
+
+  - type: textarea
+    id: novelty
+    attributes:
+      label: Why is this not already obvious or established?
+      description: Explain what ordinary search results miss and what specific discovery contribution you are making.
+    validations:
+      required: true
+
+  - type: textarea
+    id: value
+    attributes:
+      label: Who could benefit, and how?
+      description: Name the audience or buyer and the concrete value. Avoid unsupported market-size claims.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: attestations
+    attributes:
+      label: Required attestations
+      options:
+        - label: I have a lawful basis to share the submitted material.
+          required: true
+        - label: I have not included private personal data, confidential information, hacked/leaked material, trade secrets, or anything obtained by trespass or surveillance.
+          required: true
+        - label: I understand this public alpha creates no right to ownership, equity, royalties, securities, or guaranteed future income.
+          required: true
+        - label: I accept that prior art or stronger evidence may invalidate, merge, or narrow this claim.
+          required: true
