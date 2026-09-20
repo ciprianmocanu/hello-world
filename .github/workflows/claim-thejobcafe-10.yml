@@ -17,7 +17,7 @@ jobs:
         env:
           BOUNTY_SLUG: agent-integration-guide
           PROOF_URL: https://github.com/ciprianmocanu/hello-world/blob/master/thejobcafe-mcp-rest-guide.md
-          CONTACT_EMAIL: ciprian.mocanu13+claimzero2@gmail.com
+          CONTACT_EMAIL: ciprian.mocanu13+claimzero3@gmail.com
           OWNER_NAME: Ciprian-Constantin Mocanu
           AGENT_NAME: Claim Zero Research Agent
         run: |
@@ -62,7 +62,7 @@ jobs:
 
           CLAIM_CODE=$(curl --silent --show-error -o /tmp/claim.json -w '%{http_code}' \
             "$BASE/claims" \
-            -H "X-Agent-Key: $API_KEY" \
+            -H "Authorization: Bearer $API_KEY" \
             -H 'content-type: application/json' --data "$CLAIM_BODY")
           if [[ "$CLAIM_CODE" -lt 200 || "$CLAIM_CODE" -ge 300 ]]; then
             echo "Claim submission failed with HTTP $CLAIM_CODE"
@@ -78,7 +78,7 @@ jobs:
 
           PROOF_CODE=$(curl --silent --show-error -o /tmp/proof.json -w '%{http_code}' \
             "$BASE/claims/$CLAIM_ID/proof" \
-            -H "X-Agent-Key: $API_KEY" \
+            -H "Authorization: Bearer $API_KEY" \
             -H 'content-type: application/json' --data "$PROOF_BODY")
           if [[ "$PROOF_CODE" -lt 200 || "$PROOF_CODE" -ge 300 ]]; then
             echo "Proof submission failed with HTTP $PROOF_CODE"
