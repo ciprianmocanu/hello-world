@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Claim Zero — discover something before the world does, prove it, and earn attribution if it creates value on the platform." />
+  <title>CLAIM ZERO — Discover it before the world does</title>
+  <style>
+    :root{--bg:#0c0d0d;--paper:#f3f0e8;--muted:#a8aaa6;--line:#2a2c2b;--accent:#d8ff62;--ink:#151615;--max:1120px}
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--paper);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+    a{color:inherit} .wrap{width:min(var(--max),calc(100% - 40px));margin:auto}.nav{height:72px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+    .logo{font-weight:900;letter-spacing:-.04em;font-size:20px}.tag{font:12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+    .hero{padding:88px 0 72px}.eyebrow{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:12px;color:var(--muted)}.dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+    h1{font-size:clamp(54px,9vw,126px);line-height:.88;letter-spacing:-.07em;margin:28px 0 32px;max-width:1050px}.lead{font-size:clamp(20px,2.2vw,30px);max-width:760px;color:#d1d2ce;letter-spacing:-.025em}
+    .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:38px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 18px;border-radius:6px;border:1px solid var(--line);font-weight:800;text-decoration:none}.btn.primary{background:var(--accent);color:var(--ink);border-color:var(--accent)}.btn:hover{transform:translateY(-1px)}
+    .rule{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);display:grid;grid-template-columns:140px 1fr;gap:20px}.rule strong{font-size:13px}.rule p{margin:0;font-size:22px;max-width:820px;color:#d1d2ce}
+    section{padding:72px 0;border-top:1px solid var(--line)}h2{font-size:clamp(36px,5vw,66px);line-height:.98;letter-spacing:-.05em;margin:0 0 32px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{border:1px solid var(--line);border-radius:10px;padding:24px;min-height:240px;background:#111212}.num{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent)}.card h3{font-size:23px;letter-spacing:-.03em;margin:42px 0 12px}.card p{color:var(--muted);margin:0}
+    .claimbox{background:var(--paper);color:var(--ink);border-radius:14px;padding:clamp(28px,5vw,60px);display:grid;grid-template-columns:1.15fr .85fr;gap:44px}.claimbox h2{margin-bottom:18px}.claimbox p{color:#555954}.claimbox .btn{border-color:var(--ink)}
+    .principles{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}.principle{background:var(--bg);padding:30px}.principle b{display:block;font-size:21px;margin-bottom:8px}.principle span{color:var(--muted)}
+    .examples{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.example{border:1px solid var(--line);border-radius:10px;padding:20px}.pill{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent);text-transform:uppercase}.example h3{font-size:20px}.example p{color:var(--muted);font-size:14px}.example em{font-style:normal;color:#d1d2ce;font-size:13px}
+    .legal{color:var(--muted);font-size:14px;max-width:900px}.legal strong{color:var(--paper)}footer{padding:34px 0 60px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:12px}
+    @media(max-width:780px){.grid,.examples,.claimbox,.principles{grid-template-columns:1fr}.hero{padding-top:60px}.rule{grid-template-columns:1fr}.nav .tag{display:none}.claimbox{gap:14px}footer{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="nav"><div class="logo">CLAIM ZERO</div><div class="tag">public alpha · evidence before hype</div></nav>
+
+    <main class="hero">
+      <div class="eyebrow"><span class="dot"></span> Working prototype · 20 Sep 2026</div>
+      <h1>Discover it before the world does.</h1>
+      <p class="lead">Find a real product, creator, place, demand signal or opportunity that deserves attention. Prove it. If it creates value here, your contribution keeps the attribution.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/ciprianmocanu/hello-world/issues/new?template=discovery.yml">Claim a discovery</a>
+        <a class="btn" href="#how">See the rules</a>
+      </div>
+      <div class="rule"><strong>THE RULE</strong><p>You do not own the thing you discover. You can earn platform attribution for the first complete, verifiable contribution that makes it useful here.</p></div>
+    </main>
+
+    <section id="how">
+      <h2>First proven.<br>Not first shouted.</h2>
+      <div class="grid">
+        <article class="card"><span class="num">01 / FIND</span><h3>Bring something real.</h3><p>A public source, photo, primary document or other lawful evidence. A vague tip cannot reserve a discovery.</p></article>
+        <article class="card"><span class="num">02 / PROVE</span><h3>Make a falsifiable claim.</h3><p>Say exactly what is unusual, new or under-recognised and provide enough evidence for another person to challenge it.</p></article>
+        <article class="card"><span class="num">03 / ATTRIBUTE</span><h3>Keep the receipt.</h3><p>Accepted contributions receive a public timestamp and attribution. Later contributors can extend the record rather than erase the first useful proof.</p></article>
+      </div>
+    </section>
+
+    <section>
+      <div class="claimbox">
+        <div><div class="tag">Submit in under two minutes</div><h2>Think you found one?</h2><p>The alpha uses a public GitHub record so the timestamp and edits are auditable. Do not submit personal, confidential or illegally obtained information.</p></div>
+        <div style="display:flex;align-items:center"><a class="btn primary" style="width:100%" href="https://github.com/ciprianmocanu/hello-world/issues/new?template=discovery.yml">CREATE CLAIM →</a></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Designed against bullshit.</h2>
+      <div class="principles">
+        <div class="principle"><b>No pay-to-claim.</b><span>A user never needs to stake money for the chance of earning. Submission is free.</span></div>
+        <div class="principle"><b>No ownership fiction.</b><span>Attribution on Claim Zero does not create ownership over a third-party company, creator, product, property or IP.</span></div>
+        <div class="principle"><b>No guaranteed income.</b><span>A claim may create zero economic value. Any future revenue share must be governed by explicit terms before monetisation.</span></div>
+        <div class="principle"><b>Challenge is a feature.</b><span>Anyone may bring prior art or stronger evidence. The record should become more accurate, not more flattering.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="tag">Illustrative claim types — not live claims</div>
+      <h2 style="margin-top:16px">What counts?</h2>
+      <div class="examples">
+        <div class="example"><span class="pill">product</span><h3>A local product with overlooked demand.</h3><p>Evidence must establish the product, maker and why the specific commercial signal is not already obvious.</p><em>Not: “I found a famous restaurant.”</em></div>
+        <div class="example"><span class="pill">creator</span><h3>Exceptional work before broad distribution.</h3><p>The creator remains the owner of their work. Your claim is only the documented discovery contribution.</p><em>Not: scraping private profiles.</em></div>
+        <div class="example"><span class="pill">demand</span><h3>A measurable unmet need.</h3><p>Bring data showing demand and a genuine supply gap. Opinions without evidence are not discoveries.</p><em>Not: “people would probably buy this.”</em></div>
+      </div>
+    </section>
+
+    <section id="legal">
+      <h2>Legal. Moral. Procedural.</h2>
+      <div class="legal">
+        <p><strong>Alpha status.</strong> Claim Zero is an experimental public prototype, not an investment product, broker, employment marketplace, lottery or promise of payment.</p>
+        <p><strong>Lawful evidence only.</strong> Do not submit confidential business information, hacked/leaked material, private personal data, medical/financial records, doxxing, trade secrets, content obtained by trespass or surveillance, or material you do not have a lawful basis to share.</p>
+        <p><strong>Rights stay where they belong.</strong> A discovery record does not transfer ownership of a person, company, product, artwork, trademark, patent, property or copyright. Contributors grant only the permission necessary to display and evaluate material they submit.</p>
+        <p><strong>Economic claims require separate terms.</strong> No page on this alpha creates a right to royalties, securities, equity or future income. If a discovery is later monetised, contributor economics must be disclosed and accepted before that monetisation begins.</p>
+        <p><strong>Public submissions.</strong> The alpha currently records claims as public GitHub issues. Do not include information you would not want published. GitHub's own terms and privacy practices also apply.</p>
+      </div>
+    </section>
+  </div>
+  <div class="wrap"><footer><span>CLAIM ZERO · working name / public alpha</span><span>Find → prove → attribute → challenge</span></footer></div>
+</body>
+</html>
