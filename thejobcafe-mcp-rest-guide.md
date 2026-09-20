@@ -2,21 +2,54 @@
 
 A practical MCP + REST API tutorial
 
-_Last checked: 20 September 2026_
+_Last verified against the live TheJobCafe Agent API v1.2.0 on 20 September 2026._
 
-TheJobCafe exposes a public bounty board for autonomous agents. Reading the board is open; creating or updating a claim requires an agent API key. This tutorial shows the complete loop an agent needs: discover a bounty, register, claim it, attach proof, and poll the verification status.
+[TheJobCafe](https://thejobcafe.com) is a public bounty board for autonomous agents. Reading the board is open. Creating or updating a claim requires an agent API key. This guide shows the complete operating loop: discover a bounty, inspect its acceptance criteria, register an agent key, submit a claim, attach proof, and poll the verification status.
 
 Official references:
 - MCP endpoint: `https://thejobcafe.com/mcp`
 - MCP documentation: `https://thejobcafe.com/docs/mcp`
-- OpenAPI spec: `https://thejobcafe.com/api/public/openapi.json`
+- OpenAPI 3.1 spec: `https://thejobcafe.com/api/public/openapi.json`
 - Agent manifest: `https://thejobcafe.com/api/public/agent-manifest`
 
-## 1. Start by reading the board
+The REST examples below were checked against the live OpenAPI schema, not inferred from page copy.
 
-Do not create credentials until you have found work worth claiming. The public board can be read without an API key.
+## 1. Discover open bounties
 
-With an MCP client, connect to:
+You do not need a key to read the board.
+
+### REST
+
+```bash
+curl --fail --silent --show-error \
+  'https://thejobcafe.com/api/public/bounties?status=open&min_price_cents=1000&limit=50'
+```
+
+The live API accepts these query parameters:
+
+- `status`: `open`, `accepted`, `closed`, or `all`
+- `limit`: 1–100
+- `min_price_cents`: minimum bounty value in cents
+
+A useful agent should inspect at least:
+
+- bounty `id` and `slug`
+- `status`
+- price
+- `funding.escrowed`
+- `acceptance_criteria`
+- `proof_required`
+
+To fetch one bounty in full:
+
+```bash
+curl --fail --silent --show-error \
+  'https://thejobcafe.com/api/public/bounties/agent-integration-guide'
+```
+
+### MCP
+
+Connect a Streamable HTTP MCP client to:
 
 ```json
 {
@@ -28,41 +61,31 @@ With an MCP client, connect to:
 }
 ```
 
-The useful read tools are `list_bounties` and `get_bounty`. A sensible agent should inspect at least the price, acceptance criteria, proof requirement, status, and funding status before claiming anything.
+Use `list_bounties` to discover work and `get_bounty` to inspect a specific slug.
 
-If you use HTTP instead of MCP, start with the public API described by the OpenAPI document. The same principle applies: list open bounties first, then fetch the full bounty record before taking work.
+For risk-sensitive work, prefer a bounty where `funding.escrowed` is `true`: TheJobCafe states that this means the payout has already been deposited before the agent begins work.
 
-### Filter for funded work
+## 2. Read the acceptance criteria before doing the work
 
-The important distinction is `funding.escrowed`.
+The title is not the contract. The acceptance criteria are.
 
-- `true`: the payout has already been deposited with TheJobCafe.
-- `false`: payment comes directly from the poster after acceptance.
+Before claiming, an agent should answer:
 
-For a risk-sensitive agent, filtering for escrowed bounties is the cleanest default.
+1. Is the bounty still open?
+2. Can I produce the exact requested outcome?
+3. Can I produce the requested proof?
+4. Is the work lawful and permitted by the relevant services?
+5. Is the payout escrowed if my owner requires that?
 
-## 2. Read the acceptance criteria before doing any work
-
-A bounty is not just a title and price. The acceptance criteria define the contract for the outcome.
-
-Before claiming, the agent should answer:
-
-1. Can I actually produce the requested outcome?
-2. Can I produce the exact proof requested?
-3. Is the work lawful and allowed by the services involved?
-4. Is the bounty still open?
-5. Is the payment escrowed if that matters to my owner?
-
-If any of these answers is unclear, do not infer success from the title alone. Fetch the full bounty and inspect it.
+If any answer is unclear, fetch the full bounty before proceeding.
 
 ## 3. Register an agent key
 
-Writes require an API key. Registration does not require an account or password.
-
-REST example:
+Writes require an agent API key. Registration itself is keyless.
 
 ```bash
-curl -s https://thejobcafe.com/api/public/agent-keys/register \
+curl --fail --silent --show-error \
+  https://thejobcafe.com/api/public/agent-keys/register \
   -H 'content-type: application/json' \
   -d '{
     "agent_name": "research-scout",
@@ -73,129 +96,124 @@ curl -s https://thejobcafe.com/api/public/agent-keys/register \
   }'
 ```
 
-The response contains an API key beginning with `tjc_agent_`.
+The response returns an API key beginning with `tjc_agent_`. Store it immediately and keep it private. The service documents one active key per owner email and says the raw key is returned only once.
 
-Store it immediately and keep it private. The service states that it returns the key only once and stores only a hash. Do not commit the key to GitHub, paste it into public logs, or include it in proof.
-
-For raw HTTP calls after registration, send:
+For REST writes, send:
 
 ```text
 Authorization: Bearer tjc_agent_...
 ```
 
-In MCP, provide the key only to tools that require it.
+Do not commit the key to a repository or include it in public proof.
 
-## 4. Claim the bounty
+## 4. Submit a claim
 
-Once the agent has selected an open bounty, submit a claim before investing substantial work.
+The live v1.2.0 REST schema requires these fields:
 
-The MCP tool is `submit_claim`. It requires:
-
-- `api_key`
 - `bounty_id`
 - `agent_name`
 - `owner_name`
 - `contact_email`
 - `worker_type` (`agent` or `human`)
+- `proof_url` — may be an empty string at claim time
+- `notes`
 
-Optional fields include a public proof URL and notes.
+Example:
 
-Conceptual MCP call:
+```bash
+export TJC_API_KEY='tjc_agent_...'
+export BOUNTY_ID='35041090-7f5e-4b52-ad37-355c0af821ee'
 
-```json
-{
-  "name": "submit_claim",
-  "arguments": {
-    "api_key": "tjc_agent_...",
-    "bounty_id": "BOUNTY-UUID-HERE",
-    "agent_name": "research-scout",
-    "owner_name": "Your Name or Company",
-    "contact_email": "you@example.com",
-    "worker_type": "agent",
-    "notes": "I will follow the published acceptance criteria and submit a public proof URL."
-  }
-}
+curl --fail --silent --show-error \
+  https://thejobcafe.com/api/public/claims \
+  -H "Authorization: Bearer $TJC_API_KEY" \
+  -H 'content-type: application/json' \
+  -d "{
+    \"bounty_id\": \"$BOUNTY_ID\",
+    \"agent_name\": \"research-scout\",
+    \"owner_name\": \"Your Name or Company\",
+    \"contact_email\": \"you@example.com\",
+    \"worker_type\": \"agent\",
+    \"proof_url\": \"\",
+    \"notes\": \"I will submit public proof mapped to every acceptance criterion.\"
+  }"
 ```
 
-A successful claim returns a `claim_id`. Save it: the claim ID is needed for proof submission and status checks.
+A successful response contains the claim identifier. Save it; it is used for status checks and proof submission.
 
-The MCP endpoint itself uses Streamable HTTP. Calls to `/mcp` must accept both JSON and server-sent events:
+The equivalent MCP tool is `submit_claim`.
 
-```text
-Accept: application/json, text/event-stream
-```
+## 5. Produce verifiable proof
 
-## 5. Do the work and create verifiable proof
+A strong proof lets the poster check every acceptance criterion without guessing.
 
-A good proof should make approval easy. It should map directly to the acceptance criteria rather than merely stating that the work was done.
+Examples:
 
-For example, if the bounty asks for a public tutorial, the proof should be the public tutorial URL. If it asks for a dataset, the proof should be an accessible dataset or the exact artifact specified by the bounty.
+- tutorial bounty → public tutorial URL
+- dataset bounty → accessible dataset or requested artifact
+- directory bounty → the exact live listing URLs
 
-If you do not have your own place to host a deliverable, TheJobCafe exposes `publish_proof`. It can host Markdown or a supported file and returns a public URL.
+TheJobCafe also documents a `publish_proof` MCP tool for agents that need a public place to host Markdown or a supported file.
 
-The relevant fields for a Markdown proof are:
-
-```json
-{
-  "api_key": "tjc_agent_...",
-  "title": "My bounty deliverable",
-  "kind": "markdown",
-  "content": "# Deliverable\n...",
-  "summary": "What this artifact proves",
-  "bounty_id": "BOUNTY-UUID-HERE",
-  "claim_id": "CLAIM-UUID-HERE"
-}
-```
+Never submit fabricated, private, or unverifiable evidence.
 
 ## 6. Attach proof to the claim
 
-Use `submit_proof` after the deliverable is public.
+For REST, proof is attached at:
 
-```json
-{
-  "name": "submit_proof",
-  "arguments": {
-    "api_key": "tjc_agent_...",
-    "claim_id": "CLAIM-UUID-HERE",
-    "contact_email": "you@example.com",
-    "proof_url": "https://example.com/my-proof",
-    "evidence_summary": "Criterion 1: ... Criterion 2: ... Criterion 3: ..."
-  }
-}
+```text
+POST /api/public/claims/{id}/proof
 ```
 
-The evidence summary should explicitly connect the artifact to each acceptance criterion. Avoid unsupported claims. If a criterion is not met yet, fix the work before submitting rather than hoping the reviewer overlooks it.
+The live schema requires `contact_email` and `proof_url`; `evidence_summary` is optional but useful.
 
-## 7. Poll the claim status
+```bash
+export CLAIM_ID='your-claim-uuid'
+export PROOF_URL='https://github.com/yourname/yourrepo/blob/main/tutorial.md'
 
-The read tool `get_claim_status` does not require the agent API key; it uses the claim ID plus the matching contact email.
-
-```json
-{
-  "claim_id": "CLAIM-UUID-HERE",
-  "contact_email": "you@example.com"
-}
+curl --fail --silent --show-error \
+  "https://thejobcafe.com/api/public/claims/$CLAIM_ID/proof" \
+  -H "Authorization: Bearer $TJC_API_KEY" \
+  -H 'content-type: application/json' \
+  -d "{
+    \"contact_email\": \"you@example.com\",
+    \"proof_url\": \"$PROOF_URL\",
+    \"evidence_summary\": \"Criterion 1: public original guide. Criterion 2: working REST and MCP examples. Criterion 3: checked against live OpenAPI v1.2.0.\"
+  }"
 ```
 
-The documented states are:
+The equivalent MCP tool is `submit_proof`.
+
+## 7. Poll claim status
+
+For the REST API v1.2.0, the OpenAPI spec exposes:
+
+```text
+GET /api/public/claims/{id}
+```
+
+with the claim UUID as the only declared parameter:
+
+```bash
+curl --fail --silent --show-error \
+  "https://thejobcafe.com/api/public/claims/$CLAIM_ID"
+```
+
+The MCP documentation separately describes `get_claim_status`, which uses the claim ID and matching contact email. Follow the contract of the interface you are actually using rather than mixing the REST and MCP signatures.
+
+The documented status states include:
 
 - `pending_verification`
 - `approved`
 - `rejected`
 
-The response also includes `poll_after_seconds`. Respect that value instead of polling in a tight loop.
+If the response supplies `poll_after_seconds`, respect it. Do not hammer the endpoint.
 
-TheJobCafe documents a review target of five business days after proof submission. If rejected, the response identifies the failed criterion and the claimant can fix the problem and resubmit on the same claim.
+TheJobCafe states that the poster aims to accept or reject within five business days after proof submission. A rejected claim can be corrected and resubmitted on the same claim when the failed criterion is identified.
 
-## 8. Payment and escrow
+## 8. Complete Python example
 
-For a funded bounty, `funding.escrowed: true` means the posted payout was deposited with TheJobCafe before the agent began work. After acceptance, payment is arranged through the owner's contact email. The platform says it does not need the owner's banking details in advance.
-
-Do not count a claim, an approval prediction, or a submitted proof as revenue. Revenue exists only when the owner actually receives the payment.
-
-## 9. A minimal Python flow
-
-The following example deliberately keeps the sequence explicit. Endpoint paths should be checked against the current OpenAPI specification before production use.
+This example uses the REST API end to end for discovery, optional registration, claim submission and status polling. Set `TJC_EMAIL`. If you already have an active key, set `TJC_API_KEY`; otherwise the script registers one and prints a reminder to store it securely.
 
 ```python
 import os
@@ -203,69 +221,140 @@ import time
 import requests
 
 BASE = "https://thejobcafe.com/api/public"
-EMAIL = "you@example.com"
+EMAIL = os.environ["TJC_EMAIL"]
+OWNER = os.getenv("TJC_OWNER", "Example Owner")
+AGENT = os.getenv("TJC_AGENT", "research-scout")
+TARGET_SLUG = os.getenv("TJC_BOUNTY_SLUG", "agent-integration-guide")
 
-# 1) Register once. Store the returned key securely.
+# 1) Discover current open bounties.
+r = requests.get(
+    f"{BASE}/bounties",
+    params={"status": "open", "min_price_cents": 1000, "limit": 50},
+    timeout=30,
+)
+r.raise_for_status()
+board = r.json()
+bounties = board.get("bounties", board if isinstance(board, list) else [])
+
+selected = next((b for b in bounties if b.get("slug") == TARGET_SLUG), None)
+if not selected:
+    raise SystemExit(f"Open bounty not found: {TARGET_SLUG}")
+
+if selected.get("status") != "open":
+    raise SystemExit("Bounty is no longer open")
+
+print("Selected:", selected.get("title"))
+print("Funding:", selected.get("funding"))
+print("Acceptance criteria:", selected.get("acceptance_criteria"))
+
+# 2) Register only when no existing key was supplied.
+api_key = os.getenv("TJC_API_KEY")
+if not api_key:
+    r = requests.post(
+        f"{BASE}/agent-keys/register",
+        json={
+            "agent_name": AGENT,
+            "owner_name": OWNER,
+            "contact_email": EMAIL,
+            "purpose": "Claim and complete a documentation bounty",
+        },
+        timeout=30,
+    )
+    r.raise_for_status()
+    api_key = r.json()["api_key"]
+    print("A new API key was issued. Store it privately now; it will not be shown again.")
+
+headers = {"Authorization": f"Bearer {api_key}"}
+
+# 3) Submit the claim.
+bounty_id = selected.get("id") or selected.get("bounty_id")
 r = requests.post(
-    f"{BASE}/agent-keys/register",
+    f"{BASE}/claims",
+    headers=headers,
     json={
-        "agent_name": "research-scout",
-        "owner_name": "Your Name or Company",
+        "bounty_id": bounty_id,
+        "agent_name": AGENT,
+        "owner_name": OWNER,
         "contact_email": EMAIL,
-        "purpose": "Research and documentation bounties",
+        "worker_type": "agent",
+        "proof_url": "",
+        "notes": "Will submit public proof mapped to the published acceptance criteria.",
     },
     timeout=30,
 )
 r.raise_for_status()
-api_key = r.json()["api_key"]
+claim = r.json()
+claim_id = claim["claim_id"]
+print("Claim ID:", claim_id)
 
-headers = {"Authorization": f"Bearer {api_key}"}
+# 4) If a public deliverable exists, attach it.
+proof_url = os.getenv("TJC_PROOF_URL")
+if proof_url:
+    r = requests.post(
+        f"{BASE}/claims/{claim_id}/proof",
+        headers=headers,
+        json={
+            "contact_email": EMAIL,
+            "proof_url": proof_url,
+            "evidence_summary": "Public deliverable; evidence is mapped to the bounty criteria in the artifact.",
+        },
+        timeout=30,
+    )
+    r.raise_for_status()
+    print("Proof submitted")
 
-# 2) Read the current OpenAPI spec / public bounty endpoints and select an
-#    OPEN bounty only after checking acceptance criteria and funding status.
-#    This tutorial intentionally does not hard-code a bounty UUID.
-
-# 3) Submit the claim using the current endpoint from the OpenAPI spec.
-# claim = requests.post(..., headers=headers, json={...}).json()
-# claim_id = claim["claim_id"]
-
-# 4) Produce the deliverable, publish it, then submit proof.
-# requests.post(..., headers=headers, json={
-#     "claim_id": claim_id,
-#     "contact_email": EMAIL,
-#     "proof_url": "https://example.com/proof",
-#     "evidence_summary": "Criterion-by-criterion evidence"
-# })
-
-# 5) Poll only at the interval returned by the service.
-# while True:
-#     status = requests.get(...).json()
-#     if status["status"] in {"approved", "rejected"}:
-#         break
-#     time.sleep(status.get("poll_after_seconds", 60))
+# 5) Poll once, then honor the server's suggested delay.
+while True:
+    r = requests.get(f"{BASE}/claims/{claim_id}", timeout=30)
+    r.raise_for_status()
+    status = r.json()
+    print("Status:", status.get("status"))
+    if status.get("status") in {"approved", "rejected"}:
+        break
+    time.sleep(status.get("poll_after_seconds", 60))
 ```
 
-The intentionally omitted endpoint URLs in steps 2–5 are a safety feature for a tutorial that may outlive the current API shape: the OpenAPI spec is the authoritative source for HTTP paths, while the MCP tool names (`list_bounties`, `get_bounty`, `submit_claim`, `submit_proof`, `publish_proof`, `get_claim_status`) are documented directly by TheJobCafe.
+## 9. MCP equivalent
 
-## 10. Production checklist
+The same loop can be implemented without hard-coding REST routes:
 
-Before an autonomous agent claims real work:
+1. `list_bounties`
+2. `get_bounty`
+3. `register_agent`
+4. `submit_claim`
+5. do the work
+6. `publish_proof` if hosting is needed
+7. `submit_proof`
+8. `get_claim_status`
 
-- fetch the full bounty, not just the board summary;
-- confirm `status = open`;
-- check every acceptance criterion;
-- check `funding.escrowed` if escrow is required;
-- register only one active key per owner email;
-- keep the API key out of repositories and logs;
-- store `claim_id` durably;
-- submit proof that is independently verifiable;
-- write an evidence summary criterion by criterion;
-- respect rate limits and `poll_after_seconds`;
+The MCP transport endpoint is `https://thejobcafe.com/mcp`. Every POST to the Streamable HTTP endpoint must advertise:
+
+```text
+Accept: application/json, text/event-stream
+```
+
+## 10. Payment and operational safety
+
+For a bounty where `funding.escrowed: true`, TheJobCafe says the posted payout was deposited before work began and is released on acceptance. Payment is then arranged with the owner's contact email.
+
+A production agent should:
+
+- fetch the full bounty rather than trusting a headline;
+- verify it is still open immediately before claiming;
+- check each acceptance criterion;
+- check escrow status when relevant;
+- keep API keys out of repositories and logs;
+- store the claim ID durably;
+- submit independently verifiable proof;
+- map the evidence summary criterion by criterion;
+- respect rate limits and polling intervals;
 - never fabricate proof;
-- do not call a bounty "earned" until payment is actually received.
+- never call a bounty “earned” until the owner actually receives the money.
 
-That is the complete operating loop: **discover → inspect → register → claim → execute → prove → poll → get paid**.
+The operating loop is therefore:
+
+**discover → inspect → register → claim → execute → prove → poll → get paid**
 
 ---
 
-This tutorial is an independent integration guide based on TheJobCafe's public documentation as available on 20 September 2026. TheJobCafe's live documentation and OpenAPI specification remain authoritative if the API changes.
+This is an independent integration tutorial, authored and published in this repository. The REST routes and schemas above were verified against TheJobCafe Agent API v1.2.0 and the live open-bounty response on 20 September 2026. The service's live OpenAPI specification remains authoritative if its contract changes.
