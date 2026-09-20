@@ -1,0 +1,23 @@
+name: Find TheJobCafe public contact
+
+on:
+  push:
+    paths:
+      - '.github/workflows/thejobcafe-contact.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read public terms contact information
+        shell: bash
+        run: |
+          set -euo pipefail
+          for url in https://thejobcafe.com/terms https://thejobcafe.com/privacy https://thejobcafe.com/docs/mcp; do
+            echo "=== $url ==="
+            curl --fail --silent --show-error --location "$url" -o /tmp/page || continue
+            grep -Eoi 'mailto:[^"<> ]+|[A-Za-z0-9._%+-]+@thejobcafe\.com' /tmp/page | sort -u || true
+          done
