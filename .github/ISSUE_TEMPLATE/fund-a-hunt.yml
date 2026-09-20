@@ -1,0 +1,65 @@
+name: Fund a Hunt — buyer request
+description: Define a real discovery problem you would pay to have solved.
+title: "[HUNT] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the public-alpha request form. Do not include confidential data. Submitting this form is free and does not create a purchase or obligation. Any paid pilot must have scope, price, deliverable, refund/cancellation terms and payment method agreed before work begins.
+
+  - type: input
+    id: objective
+    attributes:
+      label: What do you want discovered?
+      placeholder: "Example: Find 10 independent European makers of X meeting criteria Y and Z."
+    validations:
+      required: true
+
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Acceptance criteria
+      description: Make the answer objectively testable. Include geography, exclusions and required evidence.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: budget
+    attributes:
+      label: Indicative budget if the hunt can be fulfilled
+      options:
+        - Under €25
+        - €25–€99
+        - €100–€499
+        - €500–€1,999
+        - €2,000+
+        - I need a quote
+    validations:
+      required: true
+
+  - type: input
+    id: deadline
+    attributes:
+      label: Deadline or time sensitivity
+      placeholder: "No deadline / YYYY-MM-DD"
+    validations:
+      required: true
+
+  - type: textarea
+    id: value
+    attributes:
+      label: Why would a correct discovery be valuable to you?
+      description: This helps determine whether a real market exists. Do not disclose confidential strategy.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Required attestations
+      options:
+        - label: The request is lawful and does not ask contributors to trespass, surveil private persons, obtain confidential information, impersonate someone, or bypass access controls.
+          required: true
+        - label: I understand this submission is not yet a purchase and no result or deadline is guaranteed until a separate paid pilot is agreed.
+          required: true
