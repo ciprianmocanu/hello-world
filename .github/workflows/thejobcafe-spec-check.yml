@@ -1,0 +1,30 @@
+name: TheJobCafe API spec check
+
+on:
+  push:
+    paths:
+      - '.github/workflows/thejobcafe-spec-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch and summarize public OpenAPI spec
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location \
+            https://thejobcafe.com/api/public/openapi.json -o /tmp/openapi.json
+          python - <<'PY'
+          import json
+          p='/tmp/openapi.json'
+          data=json.load(open(p))
+          print('TITLE:', data.get('info',{}).get('title'))
+          print('VERSION:', data.get('info',{}).get('version'))
+          print('PATHS:')
+          for path, methods in data.get('paths',{}).items():
+              print(path, ','.join(k.upper() for k in methods if k.lower() in {'get','post','put','patch','delete'}))
+          PY
