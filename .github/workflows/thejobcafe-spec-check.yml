@@ -28,9 +28,6 @@ jobs:
 
           print('TITLE:', spec.get('info',{}).get('title'))
           print('VERSION:', spec.get('info',{}).get('version'))
-          print('PATHS:')
-          for path, methods in spec.get('paths',{}).items():
-              print(path, ','.join(k.upper() for k in methods if k.lower() in {'get','post','put','patch','delete'}))
 
           def resolve(schema):
               if not isinstance(schema, dict): return schema
@@ -39,9 +36,11 @@ jobs:
                   for part in schema['$ref'].lstrip('#/').split('/'):
                       node=node[part]
                   return resolve(node)
+              if 'allOf' in schema:
+                  return {'allOf':[resolve(x) for x in schema['allOf']]}
               out={}
               for k,v in schema.items():
-                  if k in {'properties','items','required','type','enum','description'}:
+                  if k in {'properties','items','required','type','enum','description','format','default'}:
                       if isinstance(v,dict): out[k]={kk:resolve(vv) for kk,vv in v.items()}
                       elif isinstance(v,list): out[k]=[resolve(x) for x in v]
                       else: out[k]=v
@@ -51,8 +50,17 @@ jobs:
           for path in ['/api/public/agent-keys/register','/api/public/claims','/api/public/claims/{id}/proof']:
               op=spec['paths'][path]['post']
               schema=op.get('requestBody',{}).get('content',{}).get('application/json',{}).get('schema',{})
-              print('\n', path)
+              print('\n', path, 'security=', json.dumps(op.get('security')))
               print(json.dumps(resolve(schema), indent=2))
+
+          print('\nGET CLAIM STATUS PARAMETERS:')
+          op=spec['paths']['/api/public/claims/{id}']['get']
+          print('security=', json.dumps(op.get('security')))
+          print(json.dumps(op.get('parameters',[]), indent=2))
+
+          print('\nGET BOUNTIES PARAMETERS:')
+          op=spec['paths']['/api/public/bounties']['get']
+          print(json.dumps(op.get('parameters',[]), indent=2))
 
           print('\nOPEN BOUNTIES:')
           items=bounties.get('bounties', bounties if isinstance(bounties,list) else [])
@@ -61,7 +69,7 @@ jobs:
                   'id': b.get('id') or b.get('bounty_id'),
                   'slug': b.get('slug'),
                   'title': b.get('title'),
-                  'price_cents': b.get('price_cents') or b.get('price'),
+                  'price': b.get('price_cents') or b.get('price'),
                   'status': b.get('status'),
                   'funding': b.get('funding'),
                   'acceptance_criteria': b.get('acceptance_criteria'),
