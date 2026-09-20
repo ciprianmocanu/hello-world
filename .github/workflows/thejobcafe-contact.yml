@@ -18,6 +18,6 @@ jobs:
           set -euo pipefail
           for url in https://thejobcafe.com/terms https://thejobcafe.com/privacy https://thejobcafe.com/docs/mcp; do
             echo "=== $url ==="
-            curl --fail --silent --show-error --location "$url" -o /tmp/page || continue
-            grep -Eoi 'mailto:[^"<> ]+|[A-Za-z0-9._%+-]+@thejobcafe\.com' /tmp/page | sort -u || true
+            curl --compressed --fail --silent --show-error --location "$url" -o /tmp/page || continue
+            grep -aEoi 'mailto:[^"<> ]+|[A-Za-z0-9._%+-]+@thejobcafe\.com' /tmp/page | sort -u || true
           done
