@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A fast, offline-first cut planner for sheet goods, panels and workshop projects.">
+  <title>CutCraft — Sheet Cut Planner</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230d1515'/%3E%3Cpath d='M14 17h36v30H14z' fill='none' stroke='%23d8ff59' stroke-width='5'/%3E%3Cpath d='M32 17v30M14 33h36' stroke='%23ff875f' stroke-width='3' stroke-dasharray='5 3'/%3E%3C/svg%3E">
+  <style>
+    :root{--bg:#0b1111;--panel:#121b1b;--panel2:#172222;--ink:#edf6ef;--muted:#9cadab;--line:#2a3938;--acid:#d9ff59;--orange:#ff875f;--blue:#62c8ff;--danger:#ff6969;--r:14px}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 0,#1a2925 0,transparent 35%),var(--bg);color:var(--ink);font:16px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+    button,input,select{font:inherit}.shell{max-width:1440px;margin:auto;padding:22px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}.brand{display:flex;align-items:center;gap:12px}.mark{width:42px;height:42px;border:2px solid var(--acid);position:relative;border-radius:8px;box-shadow:0 0 24px #d9ff5920}.mark:before,.mark:after{content:"";position:absolute;background:var(--orange)}.mark:before{width:2px;height:100%;left:50%}.mark:after{height:2px;width:100%;top:50%}.brand h1{font-size:1.35rem;margin:0;letter-spacing:-.03em}.brand span{display:block;color:var(--muted);font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}.privacy{color:var(--muted);font-size:.86rem;border:1px solid var(--line);border-radius:999px;padding:7px 11px}.privacy b{color:var(--acid)}
+    .workspace{display:grid;grid-template-columns:minmax(360px,470px) 1fr;gap:18px}.panel{background:linear-gradient(160deg,var(--panel),#0f1717);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 20px 60px #0005}.controls{padding:18px;align-self:start}.section-head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:12px}.section-head h2{font-size:1rem;margin:0}.section-head small{color:var(--muted)}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:16px}.field label{display:block;color:var(--muted);font-size:.78rem;margin:0 0 5px}.field input,.field select,.piece-row input{width:100%;background:#0a1111;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:10px 11px;outline:none}.field input:focus,.piece-row input:focus{border-color:var(--acid);box-shadow:0 0 0 3px #d9ff5914}.pieces{display:grid;gap:8px}.piece-row{display:grid;grid-template-columns:1fr 82px 82px 58px 36px;gap:7px;align-items:center}.piece-row input[aria-label="Label"]{min-width:0}.piece-row button{width:36px;height:38px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--muted);cursor:pointer}.piece-row button:hover{color:var(--danger);border-color:var(--danger)}.piece-labels{display:grid;grid-template-columns:1fr 82px 82px 58px 36px;gap:7px;color:var(--muted);font-size:.72rem;margin:0 0 4px;padding:0 4px}.actions{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:14px}.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:750;cursor:pointer}.primary{background:var(--acid);color:#142000}.secondary{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}.btn:hover{filter:brightness(1.07)}.hint{margin:13px 0 0;color:var(--muted);font-size:.8rem}.hint strong{color:var(--orange)}
+    .result{min-width:0;overflow:hidden}.stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}.stat{padding:17px 18px;border-right:1px solid var(--line)}.stat:last-child{border:0}.stat small{display:block;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.07em}.stat strong{font-size:1.4rem;letter-spacing:-.04em}.stat strong.good{color:var(--acid)}.stat strong.warn{color:var(--orange)}
+    .canvas-wrap{padding:18px;min-height:520px}.canvas-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.canvas-tools h2{font-size:1rem;margin:0}.legend{display:flex;gap:12px;color:var(--muted);font-size:.78rem}.dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}.scroll{overflow:auto;padding-bottom:8px}.sheet{background:#071010;border:1px solid var(--line);border-radius:10px;margin-bottom:14px;overflow:hidden}.sheet-title{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;color:var(--muted);font-size:.78rem;border-bottom:1px solid var(--line)}canvas{width:100%;height:auto;display:block;background:#0e1817}.empty{min-height:430px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:32px}.empty strong{display:block;color:var(--ink);font-size:1.1rem;margin-bottom:7px}.error{margin-top:10px;padding:10px 12px;border-radius:9px;background:#ff696914;color:#ffc8c8;border:1px solid #ff696940;display:none;font-size:.86rem}
+    footer{display:flex;justify-content:space-between;gap:20px;margin-top:14px;color:var(--muted);font-size:.78rem;padding:0 4px}kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--ink)}
+    @media(max-width:900px){.workspace{grid-template-columns:1fr}.controls{position:static}.canvas-wrap{min-height:420px}.stats{grid-template-columns:1fr 1fr}.stat:nth-child(2){border-right:0}.stat:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+    @media(max-width:560px){.shell{padding:12px}.topbar{align-items:flex-start}.privacy{display:none}.grid3{grid-template-columns:1fr 1fr}.grid3 .field:last-child{grid-column:span 2}.piece-row,.piece-labels{grid-template-columns:1fr 62px 62px 48px 34px}.piece-row input{padding:9px 7px}.legend{display:none}.stats{grid-template-columns:1fr 1fr}.stat{padding:13px}.stat strong{font-size:1.15rem}footer{display:block}footer span{display:block;margin-bottom:5px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="mark" aria-hidden="true"></div><div><h1>CutCraft</h1><span>Sheet cut planner</span></div></div>
+      <div class="privacy"><b>Offline-first</b> · your dimensions stay in this browser</div>
+    </header>
+    <div class="workspace">
+      <section class="panel controls" aria-label="Cut plan inputs">
+        <div class="section-head"><h2>Stock sheet</h2><small>millimetres</small></div>
+        <div class="grid3">
+          <div class="field"><label for="stockW">Width</label><input id="stockW" type="number" min="100" value="2440"></div>
+          <div class="field"><label for="stockH">Height</label><input id="stockH" type="number" min="100" value="1220"></div>
+          <div class="field"><label for="kerf">Blade kerf</label><input id="kerf" type="number" min="0" value="3"></div>
+        </div>
+        <div class="section-head"><h2>Required pieces</h2><small>rotation allowed</small></div>
+        <div class="piece-labels"><span>Label</span><span>Width</span><span>Height</span><span>Qty</span><span></span></div>
+        <div class="pieces" id="pieces"></div>
+        <div class="actions"><button class="btn primary" id="optimize">Build cut plan</button><button class="btn secondary" id="add">+ Piece</button></div>
+        <div class="error" id="error" role="alert"></div>
+        <p class="hint"><strong>Workshop note:</strong> the plan includes kerf spacing, but not edge trim, grain direction or clamping clearance. Verify every cut before touching the saw.</p>
+      </section>
+      <section class="panel result" aria-live="polite">
+        <div class="stats">
+          <div class="stat"><small>Sheets</small><strong id="sheetCount">—</strong></div>
+          <div class="stat"><small>Material used</small><strong class="good" id="usedPct">—</strong></div>
+          <div class="stat"><small>Offcut / waste</small><strong class="warn" id="wastePct">—</strong></div>
+          <div class="stat"><small>Pieces placed</small><strong id="placedCount">—</strong></div>
+        </div>
+        <div class="canvas-wrap">
+          <div class="canvas-tools"><h2>Visual layout</h2><div class="legend"><span><i class="dot" style="background:#d9ff59"></i>piece</span><span><i class="dot" style="background:#ff875f"></i>rotated</span><span><i class="dot" style="background:#263534"></i>offcut</span></div></div>
+          <div class="scroll" id="layouts"><div class="empty"><div><strong>Ready for dimensions</strong>Add or edit pieces, then build the plan.</div></div></div>
+        </div>
+      </section>
+    </div>
+    <footer><span>No uploads, accounts or paid API calls.</span><span>Heuristic nesting · always verify workshop tolerances.</span></footer>
+  </main>
+  <script>
+    const palette=['#d9ff59','#62c8ff','#ffcf5b','#a68cff','#5ee2b8','#ff9db1','#77a7ff','#f2f2d0'];
+    const $=id=>document.getElementById(id); const pieces=$('pieces');
+    const defaults=[['Side A',600,400,2],['Shelf',760,280,3],['Door',900,420,2],['Brace',500,120,4]];
+    function row(data=['',400,300,1]){const d=document.createElement('div');d.className='piece-row';d.innerHTML=`<input aria-label="Label" value="${data[0]}"><input aria-label="Width" type="number" min="1" value="${data[1]}"><input aria-label="Height" type="number" min="1" value="${data[2]}"><input aria-label="Quantity" type="number" min="1" max="99" value="${data[3]}"><button aria-label="Remove piece" title="Remove">×</button>`;d.querySelector('button').onclick=()=>{if(pieces.children.length>1)d.remove()};pieces.appendChild(d)}
+    defaults.forEach(row); $('add').onclick=()=>row(['Piece '+(pieces.children.length+1),400,300,1]);
+    function fail(msg){$('error').textContent=msg;$('error').style.display='block'} function clearFail(){$('error').style.display='none'}
+    function read(){const W=+$('stockW').value,H=+$('stockH').value,k=Math.max(0,+$('kerf').value||0);if(!W||!H||W<100||H<100)throw Error('Enter a valid stock sheet size of at least 100 × 100 mm.');let all=[];[...pieces.children].forEach((r,i)=>{const ins=r.querySelectorAll('input'),name=ins[0].value.trim()||`Piece ${i+1}`,w=+ins[1].value,h=+ins[2].value,q=Math.floor(+ins[3].value);if(!w||!h||!q)throw Error(`Check the dimensions and quantity for “${name}”.`);for(let n=0;n<q;n++)all.push({name,w,h,color:palette[i%palette.length],id:`${i}-${n}`})});if(all.length>150)throw Error('Keep the plan under 150 pieces for a clear workshop layout.');return{W,H,k,all}}
+    function splitFree(free,p,k){const out=[];const usedW=p.w+k,usedH=p.h+k;const rightW=free.w-usedW,bottomH=free.h-usedH;if(rightW>0)out.push({x:free.x+usedW,y:free.y,w:rightW,h:p.h});if(bottomH>0)out.push({x:free.x,y:free.y+usedH,w:free.w,h:bottomH});return out.filter(r=>r.w>0&&r.h>0)}
+    function bestFit(part,free,k){let best=null;for(let i=0;i<free.length;i++){const f=free[i];for(const rot of [false,true]){const w=rot?part.h:part.w,h=rot?part.w:part.h;if(w<=f.w&&h<=f.h){const short=Math.min(f.w-w,f.h-h),long=Math.max(f.w-w,f.h-h),score=short*100000+long;if(!best||score<best.score)best={i,w,h,rot,score}}}}return best}
+    function pack(input){const ordered=[...input.all].sort((a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h)||b.w*b.h-a.w*a.h),sheets=[];for(const part of ordered){if(Math.min(part.w,part.h)>Math.max(input.W,input.H)||Math.max(part.w,part.h)>Math.max(input.W,input.H)&&Math.min(part.w,part.h)>Math.min(input.W,input.H))throw Error(`“${part.name}” (${part.w} × ${part.h}) does not fit on the stock sheet.`);let choice=null,si=-1;for(let s=0;s<sheets.length;s++){const c=bestFit(part,sheets[s].free,input.k);if(c&&(!choice||c.score<choice.score)){choice=c;si=s}}if(!choice){sheets.push({free:[{x:0,y:0,w:input.W,h:input.H}],placed:[]});si=sheets.length-1;choice=bestFit(part,sheets[si].free,input.k)}if(!choice)throw Error(`“${part.name}” cannot fit. Check stock size and kerf.`);const sh=sheets[si],f=sh.free.splice(choice.i,1)[0],placed={...part,x:f.x,y:f.y,w:choice.w,h:choice.h,rot:choice.rot};sh.placed.push(placed);sh.free.push(...splitFree(f,placed,input.k));}return sheets}
+    function drawSheet(sh,input,index){const wrap=document.createElement('div');wrap.className='sheet';const used=sh.placed.reduce((a,p)=>a+p.w*p.h,0);wrap.innerHTML=`<div class="sheet-title"><span>Sheet ${index+1} · ${input.W} × ${input.H} mm</span><span>${Math.round(used/(input.W*input.H)*100)}% used</span></div>`;const c=document.createElement('canvas'),max=1050,scale=Math.min(max/input.W,560/input.H);c.width=Math.max(420,Math.round(input.W*scale));c.height=Math.max(210,Math.round(input.H*scale));const x=c.getContext('2d');x.fillStyle='#162220';x.fillRect(0,0,c.width,c.height);const sx=c.width/input.W,sy=c.height/input.H;x.strokeStyle='#30423f';x.lineWidth=1;for(let gx=250;gx<input.W;gx+=250){x.beginPath();x.moveTo(gx*sx,0);x.lineTo(gx*sx,c.height);x.stroke()}for(let gy=250;gy<input.H;gy+=250){x.beginPath();x.moveTo(0,gy*sy);x.lineTo(c.width,gy*sy);x.stroke()}sh.placed.forEach((p,i)=>{const px=p.x*sx,py=p.y*sy,pw=p.w*sx,ph=p.h*sy;x.fillStyle=p.color+'cc';x.fillRect(px+1,py+1,Math.max(1,pw-2),Math.max(1,ph-2));x.strokeStyle=p.rot?'#ff875f':'#eaff9e';x.lineWidth=p.rot?3:1.4;x.strokeRect(px+1.5,py+1.5,Math.max(0,pw-3),Math.max(0,ph-3));if(pw>72&&ph>32){x.fillStyle='#0a1010';x.font=`700 ${Math.min(15,Math.max(10,pw/9))}px system-ui`;x.textAlign='center';x.textBaseline='middle';x.fillText(p.name,px+pw/2,py+ph/2-7);x.font='11px system-ui';x.fillText(`${p.rot?p.h:p.w} × ${p.rot?p.w:p.h}${p.rot?' ↻':''}`,px+pw/2,py+ph/2+10)}});wrap.appendChild(c);return wrap}
+    function run(){clearFail();try{const input=read(),sheets=pack(input),area=input.W*input.H*sheets.length,used=input.all.reduce((a,p)=>a+p.w*p.h,0),pct=used/area*100;$('sheetCount').textContent=sheets.length;$('usedPct').textContent=pct.toFixed(1)+'%';$('wastePct').textContent=(100-pct).toFixed(1)+'%';$('placedCount').textContent=input.all.length;$('layouts').innerHTML='';sheets.forEach((s,i)=>$('layouts').appendChild(drawSheet(s,input,i)));localStorage.setItem('cutcraft',JSON.stringify({W:input.W,H:input.H,k:input.k,rows:[...pieces.children].map(r=>[...r.querySelectorAll('input')].map(x=>x.value))}))}catch(e){fail(e.message)}}
+    $('optimize').onclick=run;document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')run()});
+    try{const saved=JSON.parse(localStorage.getItem('cutcraft'));if(saved?.rows?.length){$('stockW').value=saved.W;$('stockH').value=saved.H;$('kerf').value=saved.k;pieces.innerHTML='';saved.rows.forEach(row)}}catch{} run();
+  </script>
+</body>
+</html>
