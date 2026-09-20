@@ -17,21 +17,17 @@ jobs:
         env:
           BOUNTY_SLUG: agent-integration-guide
           PROOF_URL: https://github.com/ciprianmocanu/hello-world/blob/master/thejobcafe-mcp-rest-guide.md
-          CONTACT_EMAIL: ciprian.mocanu13@gmail.com
+          CONTACT_EMAIL: ciprian.mocanu13+claimzero2@gmail.com
           OWNER_NAME: Ciprian-Constantin Mocanu
           AGENT_NAME: Claim Zero Research Agent
         run: |
           set -euo pipefail
           BASE='https://thejobcafe.com/api/public'
 
-          # Read current board and refuse to proceed unless the exact bounty is
-          # still open, worth exactly $10, funded, and escrowed.
           BOARD=$(curl --fail --silent --show-error --location \
             "$BASE/bounties?status=open&min_price_cents=1000&limit=50")
-
           BOUNTY=$(printf '%s' "$BOARD" | jq -c --arg slug "$BOUNTY_SLUG" \
             '(.bounties // .)[] | select(.slug == $slug)' | head -n1)
-
           test -n "$BOUNTY" || { echo 'Target bounty is no longer open.'; exit 20; }
 
           BOUNTY_ID=$(printf '%s' "$BOUNTY" | jq -r '.id // .bounty_id')
@@ -44,59 +40,54 @@ jobs:
           test "$AMOUNT" = '1000' || { echo "Unexpected amount_cents: $AMOUNT"; exit 22; }
           test "$ESCROWED" = 'true' || { echo 'Bounty is not escrowed.'; exit 23; }
           test "$FUNDING_STATUS" = 'funded' || { echo "Unexpected funding status: $FUNDING_STATUS"; exit 24; }
-
           echo "Verified funded bounty: $BOUNTY_ID / USD 10.00 / escrowed"
 
-          # Register a fresh owner-bound agent key. Keep the key only in this
-          # ephemeral runner; never print it and never commit it.
           REG_BODY=$(jq -nc \
-            --arg agent "$AGENT_NAME" \
-            --arg owner "$OWNER_NAME" \
-            --arg email "$CONTACT_EMAIL" \
-            --arg url "$PROOF_URL" \
+            --arg agent "$AGENT_NAME" --arg owner "$OWNER_NAME" \
+            --arg email "$CONTACT_EMAIL" --arg url "$PROOF_URL" \
             '{agent_name:$agent,owner_name:$owner,contact_email:$email,agent_url:$url,purpose:"Complete the funded public integration-guide bounty and submit verifiable proof."}')
 
           REG=$(curl --fail-with-body --silent --show-error \
             "$BASE/agent-keys/register" \
-            -H 'content-type: application/json' \
-            --data "$REG_BODY")
+            -H 'content-type: application/json' --data "$REG_BODY")
           API_KEY=$(printf '%s' "$REG" | jq -r '.api_key')
           test "$API_KEY" != 'null' -a -n "$API_KEY" || { echo 'Agent registration did not return an API key.'; exit 25; }
+          echo "::add-mask::$API_KEY"
 
           CLAIM_BODY=$(jq -nc \
-            --arg bounty "$BOUNTY_ID" \
-            --arg agent "$AGENT_NAME" \
-            --arg owner "$OWNER_NAME" \
-            --arg email "$CONTACT_EMAIL" \
+            --arg bounty "$BOUNTY_ID" --arg agent "$AGENT_NAME" \
+            --arg owner "$OWNER_NAME" --arg email "$CONTACT_EMAIL" \
             --arg proof "$PROOF_URL" \
             '{bounty_id:$bounty,agent_name:$agent,owner_name:$owner,contact_email:$email,worker_type:"agent",proof_url:$proof,notes:"Original public MCP + REST tutorial. Live API v1.2.0 and bounty schema verified on 2026-09-20 before submission; GitHub revision history identifies authorship."}')
 
-          CLAIM=$(curl --fail-with-body --silent --show-error \
+          CLAIM_CODE=$(curl --silent --show-error -o /tmp/claim.json -w '%{http_code}' \
             "$BASE/claims" \
-            -H "Authorization: Bearer $API_KEY" \
-            -H 'content-type: application/json' \
-            --data "$CLAIM_BODY")
-          CLAIM_ID=$(printf '%s' "$CLAIM" | jq -r '.claim_id // .id')
-          test "$CLAIM_ID" != 'null' -a -n "$CLAIM_ID" || { echo 'Claim response did not contain a claim id.'; exit 26; }
+            -H "X-Agent-Key: $API_KEY" \
+            -H 'content-type: application/json' --data "$CLAIM_BODY")
+          if [[ "$CLAIM_CODE" -lt 200 || "$CLAIM_CODE" -ge 300 ]]; then
+            echo "Claim submission failed with HTTP $CLAIM_CODE"
+            cat /tmp/claim.json
+            exit 26
+          fi
+          CLAIM_ID=$(jq -r '.claim_id // .id' /tmp/claim.json)
+          test "$CLAIM_ID" != 'null' -a -n "$CLAIM_ID" || { echo 'Claim response did not contain a claim id.'; exit 27; }
 
           EVIDENCE='Criterion 1: the guide is original, public on GitHub, and names/links TheJobCafe. Criterion 2: it contains executable REST calls for bounty discovery, claim submission and status polling, plus the MCP equivalent. Criterion 3: REST paths and request schemas were verified against live OpenAPI v1.2.0 and the live bounty response on 2026-09-20. Criterion 4: it is written specifically for autonomous agents and their owners. Criterion 5: public Git commit/revision history identifies authorship; the guide is not paywalled.'
-
-          PROOF_BODY=$(jq -nc \
-            --arg email "$CONTACT_EMAIL" \
-            --arg proof "$PROOF_URL" \
-            --arg evidence "$EVIDENCE" \
+          PROOF_BODY=$(jq -nc --arg email "$CONTACT_EMAIL" --arg proof "$PROOF_URL" --arg evidence "$EVIDENCE" \
             '{contact_email:$email,proof_url:$proof,evidence_summary:$evidence}')
 
-          curl --fail-with-body --silent --show-error \
+          PROOF_CODE=$(curl --silent --show-error -o /tmp/proof.json -w '%{http_code}' \
             "$BASE/claims/$CLAIM_ID/proof" \
-            -H "Authorization: Bearer $API_KEY" \
-            -H 'content-type: application/json' \
-            --data "$PROOF_BODY" >/dev/null
+            -H "X-Agent-Key: $API_KEY" \
+            -H 'content-type: application/json' --data "$PROOF_BODY")
+          if [[ "$PROOF_CODE" -lt 200 || "$PROOF_CODE" -ge 300 ]]; then
+            echo "Proof submission failed with HTTP $PROOF_CODE"
+            cat /tmp/proof.json
+            exit 28
+          fi
 
-          CURRENT=$(curl --fail --silent --show-error \
-            "$BASE/claims/$CLAIM_ID")
+          CURRENT=$(curl --fail --silent --show-error "$BASE/claims/$CLAIM_ID")
           CLAIM_STATUS=$(printf '%s' "$CURRENT" | jq -r '.status // .claim.status // "unknown"')
-
           echo "Claim submitted: $CLAIM_ID"
           echo "Current status: $CLAIM_STATUS"
           {
